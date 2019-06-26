@@ -8,11 +8,7 @@ class Main {
 
     static FastReader input = new FastReader();
     static PrintWriter out = new PrintWriter(System.out);
-    static final int IINF = (int) (1e9 + 20);
     static final int _IINF = (int) (-1e9 - 20);
-    static final long LINF = (long) (1e15);
-    static final long _LINF = (long) (-1e15);
-    static final double EPS = 1e-5;
 
     /*
     * 
