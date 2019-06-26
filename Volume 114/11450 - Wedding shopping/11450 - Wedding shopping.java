@@ -15,22 +15,26 @@ class Main {
     */
 
     static int[][] a;
-    static int[][][] memo;
-    static boolean[][][] v;
+    static int[][] memo;
+    static boolean[][] v;
 
-    static int solve(int m, int i, int j) {
+    static int solve(int m, int i) {
         if (m < 0)
             return _IINF;
         if (i >= a.length)
             return 0;
-        if (j >= a[i].length)
-            return _IINF;
 
-        if (v[m][i][j])
-            return memo[m][i][j];
-        v[m][i][j] = true;
+        if (v[m][i])
+            return memo[m][i];
+        v[m][i] = true;
 
-        return memo[m][i][j] = Math.max(a[i][j] + solve(m - a[i][j], i + 1, 0), solve(m, i, j + 1));
+        int max = _IINF;
+
+        for (int j = 0; j < a[i].length; j++)
+            max = Math.max(max, a[i][j] + solve(m - a[i][j], i + 1));
+
+        return memo[m][i] = max;
+
     }
 
     public static void main(String[] args) throws IOException {
@@ -46,9 +50,9 @@ class Main {
                 for (int j = 0; j < a[i].length; j++)
                     a[i][j] = input.nextInt();
             }
-            memo = new int[m + 5][c + 5][25];
-            v = new boolean[m + 5][c + 5][25];
-            int ans = solve(m, 0, 0);
+            memo = new int[m + 5][c + 5];
+            v = new boolean[m + 5][c + 5];
+            int ans = solve(m, 0);
             out.println(ans >= 0 ? ans : "no solution");
         }
         out.flush();
