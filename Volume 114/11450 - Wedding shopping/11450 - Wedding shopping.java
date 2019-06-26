@@ -8,55 +8,49 @@ class Main {
 
     static FastReader input = new FastReader();
     static PrintWriter out = new PrintWriter(System.out);
-    static int n;
-    static int[] a;
-    static int[][] memo;
-    static boolean[][] v;
+    static final int _IINF = (int) (-1e9 - 20);
 
-    static int solve(int s, int e) {
+    /*
+    * 
+    */
 
-        if (s + 1 >= e)
+    static int[][] a;
+    static int[][][] memo;
+    static boolean[][][] v;
+
+    static int solve(int m, int i, int j) {
+        if (m < 0)
+            return _IINF;
+        if (i >= a.length)
             return 0;
+        if (j >= a[i].length)
+            return _IINF;
 
-        if (v[s][e])
-            return memo[s][e];
+        if (v[m][i][j])
+            return memo[m][i][j];
+        v[m][i][j] = true;
 
-        v[s][e] = true;
-
-        int min = (int) 1e9;
-
-        for (int i = s + 1; i < e; i++) {
-            min = Math.min(min, solve(s, i) + solve(i, e));
-        }
-
-        return memo[s][e] = a[e] - a[s] + min;
-
+        return memo[m][i][j] = Math.max(a[i][j] + solve(m - a[i][j], i + 1, 0), solve(m, i, j + 1));
     }
 
     public static void main(String[] args) throws IOException {
+        int n = input.nextInt();
+        while (n-- > 0) {
+            int m = input.nextInt();
+            int c = input.nextInt();
+            a = new int[c][];
+            for (int i = 0; i < c; i++) {
 
-        while (true) {
-            int l = input.nextInt();
+                a[i] = new int[input.nextInt()];
 
-            if (l == 0)
-                break;
-
-            n = input.nextInt();
-
-            a = new int[n + 2];
-            memo = new int[n + 5][n + 5];
-            v = new boolean[n + 5][n + 5];
-
-            for (int i = 1; i < n + 1; i++)
-                a[i] = input.nextInt();
-
-            a[0] = 0;
-            a[n + 1] = l;
-            
-            out.println("The minimum cutting is " + solve(0, n + 1) + ".");
-
+                for (int j = 0; j < a[i].length; j++)
+                    a[i][j] = input.nextInt();
+            }
+            memo = new int[m + 5][c + 5][25];
+            v = new boolean[m + 5][c + 5][25];
+            int ans = solve(m, 0, 0);
+            out.println(ans >= 0 ? ans : "no solution");
         }
-
         out.flush();
     }
 
