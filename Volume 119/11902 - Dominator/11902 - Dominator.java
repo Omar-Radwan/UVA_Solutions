@@ -1,83 +1,105 @@
-import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.util.StringTokenizer;
 
 class Main {
 
-    static int[][] a;
-    static boolean[] visited;
+    static FastReader input = new FastReader();
+    static PrintWriter out = new PrintWriter(System.out);
+    static int t, n;
+    static boolean adjMat[][], reachable[][];
 
-    static void dfs(int s, int remove) {
-        if (s != remove) {
-            visited[s] = true;
-            for (int i = 0; i < visited.length; i++) {
-                if (!visited[i] && a[s][i] == 1) {
-                    dfs(i, remove);
-                }
-            }
+    static void dfs(int p, int turnedOff) {
+        if (p == turnedOff)
+            return;
+        reachable[turnedOff][p] = true;
+
+        for (int i = 0; i < n; i++) {
+            if (!reachable[turnedOff][i] && adjMat[p][i])
+                dfs(i, turnedOff);
         }
+
     }
 
-    static void printLine(int n) {
-        System.out.print("+");
-        for (int j = 0; j < 2 * n - 1; j++) {
-            System.out.print("-");
-        }
-        System.out.print("+");
-        System.out.println();
-    }
+    public static void main(String[] args) throws IOException {
 
-    public static void main(String[] args) {
-        Scanner input = new Scanner(System.in);
+        t = input.nextInt();
 
-        int t = input.nextInt();
+        for (int z = 1; z <= t; z++) {
 
-        for (int k = 1; k <= t; k++) {
+            n = input.nextInt();
 
-            int n = input.nextInt();
-
-            a = new int[n][n];
+            adjMat = new boolean[n][n];
+            reachable = new boolean[n + 1][n + 1];
 
             for (int i = 0; i < n; i++) {
-
                 for (int j = 0; j < n; j++) {
-                    a[i][j] = input.nextInt();
-                }
-
-            }
-
-            boolean[][] dominance = new boolean[n][n];
-            visited = new boolean[n];
-            boolean[] isReachableFromS = new boolean[n];
-            dfs(0, 1000);
-            for (int i = 0; i < n; i++) {
-                isReachableFromS[i] = visited[i];
-            }
-
-            for (int i = 0; i < n; i++) {
-                visited = new boolean[n];
-                dfs(0, i);
-                for (int j = 0; j < visited.length; j++) {
-                    if (isReachableFromS[j] && !visited[j]) {
-                        dominance[i][j] = true;
-                    }
+                    int x = input.nextInt();
+                    if (x == 1)
+                        adjMat[i][j] = true;
                 }
             }
-            System.out.println("Case " + k + ":");
-            printLine(n);
+
+            for (int i = n; i >= 0; i--) { dfs(0, i); }
+
+            out.println("Case " + z + ":");
             for (int i = 0; i < n; i++) {
-                System.out.print("|");
+
+                out.print("+");
+                for (int l = 0; l < 2 * n - 1; l++)
+                    out.print("-");
+                out.println("+");
+
                 for (int j = 0; j < n; j++) {
-                    if (dominance[i][j]) {
-                        System.out.print("Y|");
+                    if (reachable[n][j] && !reachable[i][j]) {
+                        out.print("|Y");
                     } else {
-                        System.out.print("N|");
+                        out.print("|N");
                     }
+
                 }
-                System.out.println();
-                printLine(n);
+                out.println("|");
+
+                if (i == n - 1) {
+
+                    out.print("+");
+                    for (int l = 0; l < 2 * n - 1; l++)
+                        out.print("-");
+                    out.println("+");
+
+                }
             }
 
         }
+        out.flush();
+    }
 
+    static class FastReader {
+        BufferedReader br;
+        StringTokenizer st;
+
+        public FastReader() { br = new BufferedReader(new InputStreamReader(System.in)); }
+
+        String next() throws IOException {
+            while (st == null || !st.hasMoreElements()) { st = new StringTokenizer(br.readLine()); }
+            return st.nextToken();
+        }
+
+        int nextInt() throws NumberFormatException, IOException { return Integer.parseInt(next()); }
+
+        long nextLong() throws NumberFormatException, IOException { return Long.parseLong(next()); }
+
+        double nextDouble() throws NumberFormatException, IOException { return Double.parseDouble(next()); }
+
+        String nextLine() throws IOException {
+            String str = "";
+            str = br.readLine();
+            return str;
+        }
+
+        boolean hasNext() throws IOException { return br.ready(); }
     }
 
 }
