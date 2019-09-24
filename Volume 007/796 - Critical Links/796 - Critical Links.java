@@ -4,6 +4,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.StringTokenizer;
 
 class Main {
@@ -12,10 +13,10 @@ class Main {
     static FastReader input = new FastReader();
     static ArrayList<Integer>[] g;
 
-    static int dfsNum[], dfsLow[], parent[], timer = 1, dfsRoot, rootChildren;
+    static int dfsNum[], dfsLow[], parent[], timer;
     static final int UNVISITED = 0;
 
-    static boolean articulationPoint[];
+    static ArrayList<Pair> bridges;
 
     static ArrayList<Integer>[] allocateArrayList(int n) {
         ArrayList<Integer> a[] = new ArrayList[n];
@@ -27,71 +28,89 @@ class Main {
         dfsNum[u] = dfsLow[u] = timer++;
 
         for (int v : g[u]) {
-
             if (dfsNum[v] == UNVISITED) {
                 parent[v] = u;
-                if (dfsRoot == u)
-                    rootChildren++;
 
                 tarjan(v);
 
-                if (dfsLow[v] >= dfsNum[u])
-                    articulationPoint[u] = true;
+                if (dfsLow[v] > dfsNum[u]) {
+                    bridges.add(new Pair(Math.min(u, v), Math.max(u, v)));
+                }
 
                 dfsLow[u] = Math.min(dfsLow[u], dfsLow[v]);
+            }
 
-            } else if (parent[u] != v)
+            else if (parent[u] != v) {
                 dfsLow[u] = Math.min(dfsLow[u], dfsNum[v]);
-
+            }
         }
+
     }
 
     public static void main(String[] args) throws IOException {
         while (true) {
+
             int n = input.nextInt();
-
-            if (n == 0)
-                break;
-
             g = allocateArrayList(n);
 
             while (true) {
-                StringTokenizer st = new StringTokenizer(input.nextLine());
-
-                int cur = Integer.parseInt(st.nextToken()) - 1;
-
-                if (cur < 0)
+                String s = input.nextLine();
+                if (s == null || s.isEmpty())
                     break;
+                StringTokenizer st = new StringTokenizer(s, " ()");
 
+                int cur = Integer.parseInt(st.nextToken());
+                st.nextToken();
                 while (st.hasMoreTokens()) {
-                    int next = Integer.parseInt(st.nextToken()) - 1;
+                    int next = Integer.parseInt(st.nextToken());
                     g[cur].add(next);
-                    g[next].add(cur);
                 }
-
             }
 
+            timer = 1;
             dfsNum = new int[n];
             dfsLow = new int[n];
             parent = new int[n];
             Arrays.fill(parent, -1);
-            articulationPoint = new boolean[n];
-            dfsRoot = 0;
-            rootChildren = 0;
+            bridges = new ArrayList<>();
 
-            tarjan(0);
+            for (int i = 0; i < n; i++) {
+                if (dfsNum[i] == UNVISITED) {
+                    tarjan(i);
+                }
+            }
+            out.println(bridges.size() + " critical links");
 
-            articulationPoint[0] = rootChildren > 1;
+            Collections.sort(bridges);
 
-            int sum = 0;
+            for (Pair cur : bridges) { out.println(cur.x + " - " + cur.y); }
+            out.println();
 
-            for (int i = 0; i < n; i++) { sum += articulationPoint[i] ? 1 : 0; }
-
-            out.println(sum);
+            if (!input.hasNext()) {
+                break;
+            }
 
         }
 
         out.flush();
+    }
+
+    static class Pair implements Comparable<Pair> {
+        int x, y;
+
+        Pair(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        @Override
+
+        public int compareTo(Pair o) {
+            if (this.x == o.x)
+                return this.y - o.y;
+            return this.x - o.x;
+        }
+
     }
 
     static class FastReader {

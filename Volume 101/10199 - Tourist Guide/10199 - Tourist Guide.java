@@ -4,18 +4,18 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.PriorityQueue;
 import java.util.StringTokenizer;
+import java.util.TreeMap;
 
 class Main {
 
     static PrintWriter out = new PrintWriter(System.out);
     static FastReader input = new FastReader();
     static ArrayList<Integer>[] g;
-
-    static int dfsNum[], dfsLow[], parent[], timer = 1, dfsRoot, rootChildren;
-    static final int UNVISITED = 0;
-
-    static boolean articulationPoint[];
+    static TreeMap<String, Integer> map;
+    static String stoi[];
+    static int n, hash;
 
     static ArrayList<Integer>[] allocateArrayList(int n) {
         ArrayList<Integer> a[] = new ArrayList[n];
@@ -23,72 +23,100 @@ class Main {
         return a;
     }
 
+    static final int UNVISITED = 0;
+    static int dfsLow[], dfsNum[], parent[], timer, root, rootChildren;
+    static boolean artPoints[];
+
     static void tarjan(int u) {
-        dfsNum[u] = dfsLow[u] = timer++;
+        dfsLow[u] = dfsNum[u] = timer++;
 
         for (int v : g[u]) {
 
             if (dfsNum[v] == UNVISITED) {
                 parent[v] = u;
-                if (dfsRoot == u)
+
+                if (u == root)
                     rootChildren++;
 
                 tarjan(v);
 
                 if (dfsLow[v] >= dfsNum[u])
-                    articulationPoint[u] = true;
+                    artPoints[u] = true;
 
                 dfsLow[u] = Math.min(dfsLow[u], dfsLow[v]);
 
-            } else if (parent[u] != v)
+            }
+
+            else if (parent[u] != v)
                 dfsLow[u] = Math.min(dfsLow[u], dfsNum[v]);
 
         }
+
     }
 
     public static void main(String[] args) throws IOException {
-        while (true) {
-            int n = input.nextInt();
 
+        int z = 1;
+        while (true) {
+
+            n = input.nextInt();
             if (n == 0)
                 break;
+            if (z != 1)
+                out.println();
 
             g = allocateArrayList(n);
 
-            while (true) {
-                StringTokenizer st = new StringTokenizer(input.nextLine());
+            map = new TreeMap();
+            stoi = new String[n];
+            hash = 0;
 
-                int cur = Integer.parseInt(st.nextToken()) - 1;
+            for (int i = 0; i < n; i++) {
+                String s = input.nextLine();
+                map.put(s, hash);
+                stoi[hash++] = s;
+            }
 
-                if (cur < 0)
-                    break;
+            int r = input.nextInt();
 
-                while (st.hasMoreTokens()) {
-                    int next = Integer.parseInt(st.nextToken()) - 1;
-                    g[cur].add(next);
-                    g[next].add(cur);
-                }
+            while (r-- > 0) {
+                String x = input.next();
+                String y = input.next();
+
+                int xi = map.get(x);
+                int yi = map.get(y);
+
+                g[xi].add(yi);
+                g[yi].add(xi);
 
             }
 
-            dfsNum = new int[n];
             dfsLow = new int[n];
+            dfsNum = new int[n];
             parent = new int[n];
             Arrays.fill(parent, -1);
-            articulationPoint = new boolean[n];
-            dfsRoot = 0;
-            rootChildren = 0;
+            artPoints = new boolean[n];
+            timer = 1;
+            for (int i = 0; i < n; i++) {
+                if (dfsNum[i] == UNVISITED) {
+                    rootChildren = 0;
+                    root = i;
+                    tarjan(i);
+                    artPoints[i] = rootChildren > 1;
+                }
+            }
 
-            tarjan(0);
+            PriorityQueue<String> pq = new PriorityQueue<>();
 
-            articulationPoint[0] = rootChildren > 1;
+            for (int i = 0; i < n; i++) {
+                if (artPoints[i]) {
+                    pq.add(stoi[i]);
+                }
+            }
 
-            int sum = 0;
-
-            for (int i = 0; i < n; i++) { sum += articulationPoint[i] ? 1 : 0; }
-
-            out.println(sum);
-
+            out.println("City map #" + z + ": " + pq.size() + " camera(s) found");
+            while (!pq.isEmpty()) { out.println(pq.poll()); }
+            z++;
         }
 
         out.flush();
