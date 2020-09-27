@@ -81,97 +81,93 @@ void init(int argc, char **argv) {
 #define clr(x)  x.clear()
 
 
+struct node {
+    int p, n, z;
+    node(int p1, int n1, int z1) : p(p1), n(n1), z(z1) {};
+    node() {};
+};
 vector<int> a;
-vector<int> st, lazy;
-int n;
+int n, m;
+vector<node> st;
+
 void init() {
-    st.clear(), lazy.clear(), a.clear();
-    st.resize(4 * n, 0);
-    lazy.resize(4 * n, 0);
-    a.resize(n, 0);
+    a.resize(n);
+    st.resize(4 * n, node(0, 0, 0));
+
 }
-void push(int i, int l, int r) {
-    st[i] +=  lazy[i];
-    int im = 2 * i;
-    if (im < st.size())
-        lazy[im] += lazy[i];
-    if (im + 1 < st.size())
-        lazy[im + 1] += lazy[i];
-    lazy[i] = 0;
+node append(node s1, node s2) {
+    node d(0, 0, 0);
+    d.n = s1.n + s2.n, d.p = s1.p + s2.p, d.z = s1.z + s2.z;
+    return d;
+}
+void update(node &s, int v) {
+    s.z=0,s.n=0,s.p=0;
+    if (v == 0) s.z++;
+    else if (v < 0) s.n++;
+    else s.p++;
 }
 void build(int i, int l, int r) {
     if (l == r) {
-        st[i] = a[l];
+        update(st[i], a[l]);
         return;
     }
     int im = 2 * i, lm = (l + r) / 2;
     build(im, l, lm), build(im + 1, lm + 1, r);
-    st[i] = st[im] + st[im + 1];
+    st[i] = append(st[im], st[im + 1]);
 }
 
-void update(int i, int l, int r, int ql, int qr, int v) {
-
-    push(i, l, r);
-    if (ql > r || qr < l) {
-        return;
-    }
-    if (l >= ql && r <= qr) {
-        lazy[i]+= v;
-        push(i,l,r);
+void update(int i, int l, int r, int p, int v) {
+    if (l == r) {
+        update(st[i], v);
         return;
     }
     int im = 2 * i, lm = (l + r) / 2;
-    update(im, l, lm, ql, qr, v), update(im + 1, lm + 1, r, ql, qr, v);
-    st[i] = st[im] + st[im + 1];
+    if (p >= l && p <= lm)
+        update(im, l, lm, p, v);
+    else
+        update(im + 1, lm + 1, r, p, v);
+    st[i] = append(st[im], st[im+1]);
 }
 
-int query(int i, int l, int r, int ql, int qr) {
-    push(i, l, r);
-    if (ql > r || qr < l)
-        return 0;
-
-    if (l >= ql && r <= qr)
-        return st[i];
-
+node query(int i, int l, int r, int ql, int qr) {
+    if (ql > r || qr < l) return node(0, 0, 0);
+    if (l >= ql && r <= qr) return st[i];
     int im = 2 * i, lm = (l + r) / 2;
-    return query(im, l, lm, ql, qr) + query(im + 1, lm + 1, r, ql, qr);
-
+    return append(query(im, l, lm, ql, qr), query(im + 1, lm + 1, r, ql, qr));
 }
+
 
 int main(int argc, char **argv) {
-    //init(argc, argv);
-    string line;
+    init(argc, argv);
 
-    while (true) {
-        cin >> n;
-        if (n == 0)break;
-
+    while (cin >> n) {
+        cin >> m;
         init();
-
-        for (int i = 0; i < n; i++)
+        for (int i = 0; i < n; i++) {
             cin >> a[i];
-        debug(a);
-        build(1, 0, n - 1);
-        debug(st);
-        getline(cin, line);
-        while (true) {
-            getline(cin, line);
-            vector<string> tokens;
-            string intermediate;
-            stringstream ss(line);
-            while (getline(ss, intermediate, ' '))
-                tokens.push_back(intermediate);
-            if (tokens[0].compare("END") == 0)
-                break;
-            int l = stoi(tokens[1]) - 1, r = stoi(tokens[2]) ;
-            debug(tokens,l,r);
-            if (tokens[0].compare("M") == 0) {
-                cout << query(1, 0, n - 1, l , r-1) << '\n';
-            } else {
-                update(1, 0, n - 1, l , l , r);
-            }
         }
 
+
+        build(1, 0, n - 1);
+        for (int i = 0; i < m; i++) {
+            char type;
+            cin >> type;
+            if (type == 'C') {
+                int i, v;
+                cin >> i >> v;
+                update(1, 0, n - 1, i - 1, v);
+            } else {
+                int l, r;
+                cin >> l >> r;
+                node ret = query(1, 0, n - 1, l - 1, r - 1);
+                if (ret.z)
+                    cout << '0';
+                else if (ret.n & 1)
+                    cout << '-';
+                else cout << '+';
+            }
+        }
+        cout << '\n';
     }
     return 0;
 }

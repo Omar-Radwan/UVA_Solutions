@@ -11,7 +11,6 @@ void __print(unsigned x) { cerr << x; }
 void __print(unsigned long x) { cerr << x; }
 void __print(unsigned long long x) { cerr << x; }
 void __print(float x) { cerr << x; }
-void __print(double x) { cerr << x; }
 void __print(long double x) { cerr << x; }
 void __print(char x) { cerr << '\'' << x << '\''; }
 void __print(const char *x) { cerr << '\"' << x << '\"'; }
@@ -58,6 +57,7 @@ void init(int argc, char **argv) {
         cerr << "reading from in.txt" << endl;
         freopen(argv[1], "r", stdin);
     }
+//    freopen("output.txt", "w", stdout);
 }
 //#define int long long
 #define ll long long
@@ -79,99 +79,34 @@ void init(int argc, char **argv) {
 #define priority_queue2(x...) priority_queue<x, vector<x>, greater<x>>
 #define sz(x) ((int)x.size())
 #define clr(x)  x.clear()
+#define mp(x, y) make_pair(x,y)
+#include<bits/stdc++.h>
+using namespace std;
 
-
-vector<int> a;
-vector<int> st, lazy;
-int n;
-void init() {
-    st.clear(), lazy.clear(), a.clear();
-    st.resize(4 * n, 0);
-    lazy.resize(4 * n, 0);
-    a.resize(n, 0);
+unordered_map<int, int> ans;
+long long fast_power(long long base, int exp) {
+    if (exp == 0) return 1;
+    if (exp & 1) return base * fast_power(base, exp - 1);
+    long long x = fast_power(base, exp / 2);
+    return x * x;
 }
-void push(int i, int l, int r) {
-    st[i] +=  lazy[i];
-    int im = 2 * i;
-    if (im < st.size())
-        lazy[im] += lazy[i];
-    if (im + 1 < st.size())
-        lazy[im + 1] += lazy[i];
-    lazy[i] = 0;
-}
-void build(int i, int l, int r) {
-    if (l == r) {
-        st[i] = a[l];
-        return;
+int main() {
+    long long MAX = 1LL * INT_MAX + 10;
+    for (long long i = 2; i * i <= MAX; i++) {
+        for (int j = 2; fast_power(i, j) <= MAX; j++) {
+            long long x = fast_power(i, j);
+            ans[x] = max(ans[x], j);
+            if (j & 1)
+                ans[-x] = max(ans[-x], j);
+        }
     }
-    int im = 2 * i, lm = (l + r) / 2;
-    build(im, l, lm), build(im + 1, lm + 1, r);
-    st[i] = st[im] + st[im + 1];
-}
-
-void update(int i, int l, int r, int ql, int qr, int v) {
-
-    push(i, l, r);
-    if (ql > r || qr < l) {
-        return;
-    }
-    if (l >= ql && r <= qr) {
-        lazy[i]+= v;
-        push(i,l,r);
-        return;
-    }
-    int im = 2 * i, lm = (l + r) / 2;
-    update(im, l, lm, ql, qr, v), update(im + 1, lm + 1, r, ql, qr, v);
-    st[i] = st[im] + st[im + 1];
-}
-
-int query(int i, int l, int r, int ql, int qr) {
-    push(i, l, r);
-    if (ql > r || qr < l)
-        return 0;
-
-    if (l >= ql && r <= qr)
-        return st[i];
-
-    int im = 2 * i, lm = (l + r) / 2;
-    return query(im, l, lm, ql, qr) + query(im + 1, lm + 1, r, ql, qr);
-
-}
-
-int main(int argc, char **argv) {
-    //init(argc, argv);
-    string line;
 
     while (true) {
+        int n;
         cin >> n;
-        if (n == 0)break;
-
-        init();
-
-        for (int i = 0; i < n; i++)
-            cin >> a[i];
-        debug(a);
-        build(1, 0, n - 1);
-        debug(st);
-        getline(cin, line);
-        while (true) {
-            getline(cin, line);
-            vector<string> tokens;
-            string intermediate;
-            stringstream ss(line);
-            while (getline(ss, intermediate, ' '))
-                tokens.push_back(intermediate);
-            if (tokens[0].compare("END") == 0)
-                break;
-            int l = stoi(tokens[1]) - 1, r = stoi(tokens[2]) ;
-            debug(tokens,l,r);
-            if (tokens[0].compare("M") == 0) {
-                cout << query(1, 0, n - 1, l , r-1) << '\n';
-            } else {
-                update(1, 0, n - 1, l , l , r);
-            }
-        }
-
+        if (n == 0) break;
+        cout << max(ans[n], 1) << '\n';
     }
+
     return 0;
 }

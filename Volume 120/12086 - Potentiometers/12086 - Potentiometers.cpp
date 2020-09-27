@@ -82,23 +82,14 @@ void init(int argc, char **argv) {
 
 
 vector<int> a;
-vector<int> st, lazy;
+vector<int> st;
 int n;
 void init() {
-    st.clear(), lazy.clear(), a.clear();
+    st.clear(), a.clear();
     st.resize(4 * n, 0);
-    lazy.resize(4 * n, 0);
     a.resize(n, 0);
 }
-void push(int i, int l, int r) {
-    st[i] +=  lazy[i];
-    int im = 2 * i;
-    if (im < st.size())
-        lazy[im] += lazy[i];
-    if (im + 1 < st.size())
-        lazy[im + 1] += lazy[i];
-    lazy[i] = 0;
-}
+
 void build(int i, int l, int r) {
     if (l == r) {
         st[i] = a[l];
@@ -111,13 +102,12 @@ void build(int i, int l, int r) {
 
 void update(int i, int l, int r, int ql, int qr, int v) {
 
-    push(i, l, r);
+
     if (ql > r || qr < l) {
         return;
     }
     if (l >= ql && r <= qr) {
-        lazy[i]+= v;
-        push(i,l,r);
+        st[i] = v;
         return;
     }
     int im = 2 * i, lm = (l + r) / 2;
@@ -126,7 +116,7 @@ void update(int i, int l, int r, int ql, int qr, int v) {
 }
 
 int query(int i, int l, int r, int ql, int qr) {
-    push(i, l, r);
+
     if (ql > r || qr < l)
         return 0;
 
@@ -139,21 +129,22 @@ int query(int i, int l, int r, int ql, int qr) {
 }
 
 int main(int argc, char **argv) {
-    //init(argc, argv);
+    init(argc, argv);
     string line;
+    int zz = 1;
 
     while (true) {
         cin >> n;
         if (n == 0)break;
-
         init();
-
         for (int i = 0; i < n; i++)
             cin >> a[i];
-        debug(a);
         build(1, 0, n - 1);
-        debug(st);
         getline(cin, line);
+
+        if (zz != 1) cout << '\n';
+        cout << "Case " << to_string(zz++) << ":" << '\n';
+
         while (true) {
             getline(cin, line);
             vector<string> tokens;
@@ -161,15 +152,17 @@ int main(int argc, char **argv) {
             stringstream ss(line);
             while (getline(ss, intermediate, ' '))
                 tokens.push_back(intermediate);
+
             if (tokens[0].compare("END") == 0)
                 break;
-            int l = stoi(tokens[1]) - 1, r = stoi(tokens[2]) ;
-            debug(tokens,l,r);
+            int l = stoi(tokens[1]) - 1, r = stoi(tokens[2]);
+
             if (tokens[0].compare("M") == 0) {
-                cout << query(1, 0, n - 1, l , r-1) << '\n';
+                cout << query(1, 0, n - 1, l, r - 1) << '\n';
             } else {
-                update(1, 0, n - 1, l , l , r);
+                update(1, 0, n - 1, l, l, r);
             }
+
         }
 
     }
